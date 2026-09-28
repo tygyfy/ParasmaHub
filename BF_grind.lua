@@ -2108,62 +2108,53 @@ function UpdateLsdESP()
 end
 
 task.spawn(function()
-    while _G.ChestESP do
+    while task.wait(1) do
         UpdateChestChams()
-        task.wait(60) 
     end
 end)
 task.spawn(function()
-    while _G.FruitESP do
-        UpdateDevilChams()
-        task.wait(1) 
+    while task.wait(0.1) do
+        UpdateDevilChams() 
     end
 end)
 task.spawn(function()
-    while _G.IslandESP do
-        UpdateIslandESP()
-        task.wait(1) 
+    while task.wait(0.1) do
+        UpdateIslandESP() 
     end
 end)
 task.spawn(function()
-    while _G.PlayersESP do
-        UpdatePlayerChams()
-        task.wait(1) 
+    while task.wait(0.1) do
+        UpdatePlayerChams() 
     end
 end)
 task.spawn(function()
-    while _G.MobsESP do
-        UpdateMobsChams()
-        task.wait(1) 
+    while task.wait(0.1) do
+        UpdateMobsChams() 
     end
 end)
 
 if World2 then
     task.spawn(function()
-        while _G.FlowerESP do
-            UpdateFlowerChams()
-            task.wait(1) 
+        while task.wait(0.1) do
+            UpdateFlowerChams() 
         end
     end)
     task.spawn(function()
-        while _G.LsdESP do
+        while task.wait(0.1) do
             UpdateLsdESP()
-            task.wait(1) 
         end
     end)
 end
 
 if World3 then
     task.spawn(function()
-        while _G.AfdESP do
-            UpdateAfdESP()
-            task.wait(1) 
+        while task.wait(0.1) do
+            UpdateAfdESP() 
         end
     end)
     task.spawn(function()
-        while _G.RealFruitESP do
-            UpdateRealFruitChams()
-            task.wait(1) 
+        while task.wait(0.1) do
+            UpdateRealFruitChams() 
         end
     end)
 end
