@@ -108,6 +108,9 @@ _G.AutoBuyChip = false
 _G.Auto_Raid = false
 _G.LumenRaid = false
 _G.Auto_Awakener = false
+_G.RaidCount = 0
+_G.RaidTweenSpeed = 200
+_G.SaveTweenSpeed = 200
 
 _G.AutoFarmMastery = false
 _G.SelectWeaponMastery = "Melee"
@@ -2201,43 +2204,65 @@ spawn(function()
 end)
 
 function raidLoop()
-    lastRaidIndex = 1
-    _G.Clip = true
-    _G.Noclip = true
-    _G.LumenRaid = true
+    -- Сохраняем состояние
+    local lastRaidIndex, maxIslands = 1, 0
+    local raidStarted, raidCompleted = false, false
+    local REQUIRED_ISLANDS = 5
+    
+    _G.Noclip, _G.Clip, _G.LumenRaid = true, true, true
+    
     while _G.Auto_Raid do
-        local raidMap = getRaidMap()
-        if not raidMap then
-            break
-        end
-        if #raidMap:GetChildren() == 0 then
-            break
-        end
-
-        local maxIndex = getMaxRaidIndex()
-        if maxIndex > lastRaidIndex then
-            local nextIndex = lastRaidIndex + 1
-            local part, model = getRaidIslandPart(nextIndex)
-            if part and model and GetDistance(part) <= 3000 then
-                lastRaidIndex = nextIndex
-                local islandCF = part.CFrame
-                local targetCF = islandCF + RaidPos
-                _G.LumenRaid = false
-                _G.TweenSpeed = _G.SaveTweenSpeed
-                topos(targetCF)
-                task.wait(0.15)
-                _G.TweenSpeed = _G.RaidTweenSpeed
-                _G.LumenRaid = true
+        pcall(function()
+            local raidMap = getRaidMap()
+            local hasRaid = raidMap and #raidMap:GetChildren() > 0
+            
+            if hasRaid then
+                if not raidStarted then
+                    raidStarted, maxIslands, lastRaidIndex = true, 0, 1
+                end
+                
+                local maxIndex = getMaxRaidIndex()
+                if maxIndex > maxIslands then maxIslands = maxIndex end
+                
+                if maxIndex > lastRaidIndex then
+                    local part = getRaidIslandPart(lastRaidIndex + 1)
+                    if part and GetDistance(part) <= 3000 then
+                        lastRaidIndex = lastRaidIndex + 1
+                        _G.LumenRaid = false
+                        _G.TweenSpeed = _G.SaveTweenSpeed
+                        topos(part.CFrame + RaidPos)
+                        task.wait(0.15)
+                        _G.TweenSpeed = _G.RaidTweenSpeed
+                        _G.LumenRaid = true
+                    end
+                end
+            elseif raidStarted then
+                -- Карта исчезла — рейд закончился
+                if maxIslands >= REQUIRED_ISLANDS then
+                    raidCompleted = true
+                end
+                raidStarted, maxIslands, lastRaidIndex = false, 0, 1
             end
-        end
+        end)
+        
+        if raidCompleted then break end
         task.wait(0.2)
     end
-    _G.RaidCount = _G.RaidCount + 1
-    SendDiscordWebhook("Raid", "Raid был успешно пройден", 16711680, {{name = "Имя персонажа", value = LocalPlayer.Name, inline = true}, {name = "Номер рейда", value = _G.RaidCount, inline = true}})
-    _G.LumenRaid = false
-    _G.Clip = false
+
+    if raidCompleted then
+        _G.RaidCount = (_G.RaidCount or 0) + 1
+        SendDiscordWebhook("Raid", "Raid успешно пройден", 16711680, {
+            {name = "Имя персонажа", value = LocalPlayer.Name, inline = true},
+            {name = "Номер рейда", value = tostring(_G.RaidCount), inline = true}
+        })
+    end
+    
     _G.Noclip = false
+    _G.Clip = false
+    _G.LumenRaid = false
     _G.Auto_Raid = false
+    
+    if _G.RaidToggleOff then _G.RaidToggleOff() end
 end
 
 spawn(function()
@@ -2350,11 +2375,11 @@ end)
 
 
 -- local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/parasmav2/refs/heads/main/gui.lua"))()
-local Gui = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/ParasmaHub/refs/heads/main/BF_new_library.lua"))()
+local Gui = loadstring(game:HttpGet("http://localhost:8000/BF_new_library.lua"))()
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
-    Version = "ULTIMATE v2.0",
+    Version = "ULTIMATE v2.1",
     Size = UDim2.new(0, 720, 0, 440),
     Position = UDim2.new(0.5, -360, 0.5, -220),
     EnableKeySystem = true, -- или true
@@ -2365,7 +2390,7 @@ local Window = Gui:CreateWindow({
 
 local infoTab = Window:CreateTab("INFO TAB", "")
 infoTab:AddSection("Info")
-infoTab:AddLabel("Version: 2.0")
+infoTab:AddLabel("Version: 2.1")
 infoTab:AddToggle("Webhook System", true, function(Value)
     _G.EnableWebhook = Value
 end)
@@ -2638,20 +2663,25 @@ end)
 Raid:AddButton("Buy Chips Select", function(Value)
     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaidsNpc","Select",_G.SelectChip)
 end)
-local raidThread = nil
-Raid:AddToggle("Auto Raid", false, function(Value)
-    if Value then
-        _G.Auto_Raid = true
-        raidThread = task.spawn(raidLoop)
-    else
-        _G.Auto_Raid = false
+local raidThread, raidToggle
+raidToggle = Raid:AddToggle("Auto Raid", false, function(Value)
+    _G.Auto_Raid = Value
+    if Value and not raidThread then
+        raidThread = task.spawn(function()
+            pcall(raidLoop)
+            raidThread = nil
+        end)
+    elseif not Value then
         raidThread = nil
     end
 end)
+_G.RaidToggleOff = function()
+    if raidToggle and raidToggle.GetState() then raidToggle.SetState(false) end
+end
 Raid:AddToggle("Auto Awakener", false, function(Value)
     _G.Auto_Awakener = Value
 end)
-Raid:AddTextbox("Raid Fly Speed", "Enter fly speed", "200", function(Value)
+Raid:AddSlider("Raid Fly Speed", 100, 1500, 200, function(Value)
     _G.RaidTweenSpeed = tonumber(Value)
 end)
 Raid:AddTextbox("(WEBHOOK) Raid counter", "Enter raid number", "0", function(Value)
