@@ -99,10 +99,17 @@ _G.StatsToUpgrade = {
     ["Blox Fruit"] = false
 }
 
-_G.ESP_Players = false
-_G.ESP_Fruits = false
-_G.ESP_Chests = false
-_G.ESP_Mobs = false
+_G.ChestESP = false
+_G.FruitESP = false
+_G.IslandESP = false
+_G.PlayersESP = false
+_G.MobsESP = false
+_G.FlowerESP = false
+_G.LsdESP = false
+_G.AfdESP = false
+_G.RealFruitESP = false
+
+
 
 _G.AutoBuyChip = false
 _G.Auto_Raid = false
@@ -1694,7 +1701,7 @@ function UpdateMobsChams()
     local enemiesFolder = workspace:FindFirstChild("Enemies")
     for _, v in pairs(enemiesFolder:GetChildren()) do
         pcall(function()
-            if MobsESP then 
+            if _G.MobsESP then 
                 if not v:FindFirstChild('NameEsp') then
                     local bill = Instance.new('BillboardGui',v)
                     bill.Name = 'NameEsp'
@@ -1725,7 +1732,7 @@ end
 function UpdateIslandESP() 
     for i,v in pairs(game:GetService("Workspace")["_WorldOrigin"].Locations:GetChildren()) do
         pcall(function()
-            if IslandESP then 
+            if _G.IslandESP then 
                 if v.Name ~= "Sea" then
                     if not v:FindFirstChild('NameEsp') then
                         local bill = Instance.new('BillboardGui',v)
@@ -1759,7 +1766,7 @@ function UpdatePlayerChams()
     for i,v in pairs(game:GetService'Players':GetChildren()) do
         pcall(function()
             if not isnil(v.Character) then
-                if ESPPlayer then
+                if _G.PlayersESP then
                     if not isnil(v.Character.Head) and not v.Character.Head:FindFirstChild('NameEsp'..Number) then
                         local bill = Instance.new('BillboardGui',v.Character.Head)
                         bill.Name = 'NameEsp'..Number
@@ -1793,11 +1800,11 @@ function UpdatePlayerChams()
         end)
     end
 end
-function UpdateChestChams() 
+function UpdateChestChams()
     for i, v in ipairs(Workspace:GetDescendants()) do
         pcall(function()
             if v:IsA("BasePart") and string.find(v.Name, "Chest") and v:FindFirstChild("TouchInterest") then
-                if ChestESP then
+                if _G.ChestESP then
                     if not v:FindFirstChild('NameEsp'..Number) then
                         local bill = Instance.new('BillboardGui',v)
                         bill.Name = 'NameEsp'..Number
@@ -1845,7 +1852,7 @@ function UpdateDevilChams()
     newEspNames = {}
     for i, v in pairs(game.Workspace:GetChildren()) do
         pcall(function()
-            if _G.ESP_Fruits then
+            if _G.FruitESP then
                 if string.find(v.Name, "Fruit") then
                     if not v.Handle:FindFirstChild('NameEsp'..Number) then
                         local bill = Instance.new('BillboardGui', v.Handle)
@@ -1894,7 +1901,7 @@ function UpdateFlowerChams()
     for i,v in pairs(game.Workspace:GetChildren()) do
         pcall(function()
             if v.Name == "Flower2" or v.Name == "Flower1" then
-                if FlowerESP then 
+                if _G.FlowerESP then 
                     if not v:FindFirstChild('NameEsp'..Number) then
                         local bill = Instance.new('BillboardGui',v)
                         bill.Name = 'NameEsp'..Number
@@ -1934,7 +1941,7 @@ end
 function UpdateRealFruitChams() 
     for i,v in pairs(game.Workspace.AppleSpawner:GetChildren()) do
         if v:IsA("Tool") then
-            if RealFruitESP then 
+            if _G.RealFruitESP then 
                 if not v.Handle:FindFirstChild('NameEsp'..Number) then
                     local bill = Instance.new('BillboardGui',v.Handle)
                     bill.Name = 'NameEsp'..Number
@@ -1964,7 +1971,7 @@ function UpdateRealFruitChams()
     end
     for i,v in pairs(game.Workspace.PineappleSpawner:GetChildren()) do
         if v:IsA("Tool") then
-            if RealFruitESP then 
+            if _G.RealFruitESP then 
                 if not v.Handle:FindFirstChild('NameEsp'..Number) then
                     local bill = Instance.new('BillboardGui',v.Handle)
                     bill.Name = 'NameEsp'..Number
@@ -1994,7 +2001,7 @@ function UpdateRealFruitChams()
     end
     for i,v in pairs(game.Workspace.BananaSpawner:GetChildren()) do
         if v:IsA("Tool") then
-            if RealFruitESP then 
+            if _G.RealFruitESP then 
                 if not v.Handle:FindFirstChild('NameEsp'..Number) then
                     local bill = Instance.new('BillboardGui',v.Handle)
                     bill.Name = 'NameEsp'..Number
@@ -2026,7 +2033,7 @@ end
 function UpdateAfdESP() 
     for i,v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
         pcall(function()
-            if AfdESP then 
+            if _G.AfdESP then 
                 if v.Name == "Advanced Fruit Dealer" then
                     if not v:FindFirstChild('NameEsp') then
                         local bill = Instance.new('BillboardGui',v)
@@ -2060,7 +2067,7 @@ LsdCount = 0
 function UpdateLsdESP() 
     for i,v in pairs(game:GetService("Workspace").NPCs:GetChildren()) do
         pcall(function()
-            if LsdESP then 
+            if _G.LsdESP then 
                 if v.Name == "Legendary Sword Dealer" then
                     if not v:FindFirstChild('NameEsp') then
                         local bill = Instance.new('BillboardGui',v)
@@ -2098,6 +2105,67 @@ function UpdateLsdESP()
             )
         end
     end
+end
+
+task.spawn(function()
+    while _G.ChestESP do
+        UpdateChestChams()
+        task.wait(60) 
+    end
+end)
+task.spawn(function()
+    while _G.FruitESP do
+        UpdateDevilChams()
+        task.wait(1) 
+    end
+end)
+task.spawn(function()
+    while _G.IslandESP do
+        UpdateIslandESP()
+        task.wait(1) 
+    end
+end)
+task.spawn(function()
+    while _G.PlayersESP do
+        UpdatePlayerChams()
+        task.wait(1) 
+    end
+end)
+task.spawn(function()
+    while _G.MobsESP do
+        UpdateMobsChams()
+        task.wait(1) 
+    end
+end)
+
+if World2 then
+    task.spawn(function()
+        while _G.FlowerESP do
+            UpdateFlowerChams()
+            task.wait(1) 
+        end
+    end)
+    task.spawn(function()
+        while _G.LsdESP do
+            UpdateLsdESP()
+            task.wait(1) 
+        end
+    end)
+end
+
+if World3 then
+    task.spawn(function()
+        while _G.AfdESP do
+            UpdateAfdESP()
+            task.wait(1) 
+        end
+    end)
+    task.spawn(function()
+        while _G.RealFruitESP do
+            UpdateRealFruitChams()
+            task.wait(1) 
+        end
+    end)
 end
 
 
@@ -2211,7 +2279,7 @@ function raidLoop()
     
     _G.Noclip, _G.Clip, _G.LumenRaid = true, true, true
     
-    while _G.Auto_Raid do
+    while _G.Auto_Raid and LocalPlayer.Character.Humanoid.Health > 0 do
         pcall(function()
             local raidMap = getRaidMap()
             local hasRaid = raidMap and #raidMap:GetChildren() > 0
@@ -2373,7 +2441,9 @@ end)
 
 
 
-local Gui = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/ParasmaHub/refs/heads/main/BF_new_library.lua"))()
+
+-- local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/parasmav2/refs/heads/main/gui.lua"))()
+local Gui = loadstring(game:HttpGet("http://localhost:8000/BF_new_library.lua"))()
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
@@ -2575,47 +2645,23 @@ end)
 
 local ESP = Window:CreateTab("ESP", "")
 ESP:AddToggle("Chests ESP", false, function(Value)
-    ChestESP = Value
-    while ChestESP do
-        UpdateChestChams()
-        task.wait(1)
-    end
+    _G.ChestESP = Value
 end)
 ESP:AddToggle("Fruit ESP", false, function(Value)
-    _G.ESP_Fruits = Value
-    while _G.ESP_Fruits do
-        task.wait(0.1)
-        UpdateDevilChams()
-    end
+    _G.FruitESP = Value
 end)
 ESP:AddToggle("Islands ESP", false, function(Value)
-    IslandESP = Value
-    while IslandESP do
-        task.wait(1)
-        UpdateIslandESP()
-    end
+    _G.IslandESP = Value
 end)
 ESP:AddToggle("Players ESP", false, function(Value)
-    ESPPlayer = Value
-    while ESPPlayer do
-        task.wait(0.08)
-        UpdatePlayerChams()
-    end
+    _G.PlayersESP = Value
 end)
 ESP:AddToggle("Mobs ESP", false, function(Value)
-    MobsESP = Value
-    while MobsESP do
-        task.wait(0.1)
-        UpdateMobsChams()
-    end
+    _G.MobsESP = Value
 end)
 if World2 then
     ESP:AddToggle("Flower ESP", false, function(Value)
-        FlowerESP = Value
-        while FlowerESP do
-            task.wait(1)
-            UpdateFlowerChams()
-        end
+        _G.FlowerESP = Value
     end)
     ESP:AddToggle("Legendary Sword Dealer ESP", false, function(Value)
         LsdESP = Value
@@ -2627,11 +2673,10 @@ if World2 then
 end
 if World3 then
     ESP:AddToggle("Advanced Fruit Dealer ESP", false, function(Value)
-        AfdESP = Value
-        while AfdESP do
-            task.wait(1)
-            UpdateAfdESP()
-        end
+        _G.AfdESP = Value
+    end)
+    ESP:AddToggle("Real Fruits ESP", false, function(Value)
+        _G.RealFruitESP = Value
     end)
 end
 
