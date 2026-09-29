@@ -2551,7 +2551,7 @@ function CreateConfig(configName)
         _meta = {
             created  = os.date("%Y-%m-%d %H:%M:%S"),
             script   = "Parasma",
-            version  = "2.1",
+            version  = "2.2",
         },
         vars = {},
         stats = {},
@@ -2678,7 +2678,7 @@ _G.autoexecConfig = ""
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
-    Version = "ULTIMATE v2.1",
+    Version = "ULTIMATE v2.2",
     Size = UDim2.new(0, 720, 0, 440),
     Position = UDim2.new(0.5, -360, 0.5, -220),
     EnableKeySystem = true, -- или true
@@ -2689,7 +2689,7 @@ local Window = Gui:CreateWindow({
 
 local infoTab = Window:CreateTab("INFO TAB", "")
 infoTab:AddSection("Info")
-infoTab:AddLabel("Version: 2.1")
+infoTab:AddLabel("Version: 2.2")
 infoTab:AddToggle("Webhook System", true, function(Value)
     _G.EnableWebhook = Value
 end)
