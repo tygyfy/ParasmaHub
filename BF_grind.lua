@@ -2432,9 +2432,7 @@ end)
 
 
 
-
--- local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/parasmav2/refs/heads/main/gui.lua"))()
-local Gui = loadstring(game:HttpGet("http://localhost:8000/BF_new_library.lua"))()
+local Gui = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/ParasmaHub/refs/heads/main/BF_grind.lua"))()
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
