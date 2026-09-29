@@ -1,7 +1,7 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Vim = game:GetService("VirtualInputManager")
+--local Vim = game:GetService("VirtualInputManager")
 local VirtualUser = game:GetService("VirtualUser")
 local HttpService = game:GetService("HttpService")
 
@@ -47,7 +47,6 @@ pcall(function()
     end
 end)
 
-local Locations = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("Locations")
 local UncheckedChests = {}
 FirstRun = true
 FirstRunBerry = true
@@ -109,8 +108,6 @@ _G.LsdESP = false
 _G.AfdESP = false
 _G.RealFruitESP = false
 
-
-
 _G.AutoBuyChip = false
 _G.Auto_Raid = false
 _G.LumenRaid = false
@@ -118,15 +115,6 @@ _G.Auto_Awakener = false
 _G.RaidCount = 0
 _G.RaidTweenSpeed = 200
 _G.SaveTweenSpeed = 200
-
-_G.AutoFarmMastery = false
-_G.SelectWeaponMastery = "Melee"
-_G.AutoSkillZ = false
-_G.AutoSkillX = false
-_G.AutoSkillC = false
-_G.AutoSkillV = false
-_G.AutoSkillF = false
-_G.PercentFarm = 25
 
 
 
@@ -242,7 +230,7 @@ function Hop()
     local foundAnything = ""
     local actualHour = os.date("!*t").hour
     local Deleted = false
-    function TPReturner()
+    local function TPReturner()
         local Site;
         if foundAnything == "" then
             Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
@@ -275,18 +263,18 @@ function Hop()
                 end
                 if Possible == true then
                     table.insert(AllIDs, ID)
-                    wait()
+                    task.wait()
                     pcall(function()
-                        wait()
+                        task.wait()
                         game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
                     end)
-                    wait(4)
+                    task.wait(4)
                 end
             end
         end
     end
-    function Teleport() 
-        while wait() do
+    local function Teleport() 
+        while task.wait() do
             pcall(function()
                 TPReturner()
                 if foundAnything ~= "" then
@@ -298,7 +286,7 @@ function Hop()
     Teleport()
 end  
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.Noclip then continue end
         pcall(function()
@@ -311,7 +299,7 @@ spawn(function()
     end
 end)
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if _G.Clip then
             pcall(function()
@@ -389,7 +377,7 @@ function cancelFlight()
 end
 
 function BTP(P)
-	repeat wait(1)
+	repeat task.wait(1)
 		game.Players.LocalPlayer.Character.Humanoid:ChangeState(15)
 		game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = P
 		task.wait()
@@ -397,12 +385,12 @@ function BTP(P)
 	until (P.Position-game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude <= 1500
 end
 
-spawn(function()
+task.spawn(function()
     while task.wait(0.1) do
         pcall(function()
             if _G.V4 then
                 game:GetService("VirtualInputManager"):SendKeyEvent(true,"Y",false,game)
-                wait(0.1)
+                task.wait(0.1)
                 game:GetService("VirtualInputManager"):SendKeyEvent(false,"Y",false,game)
             end
         end)
@@ -511,7 +499,7 @@ function PerformFastAttack(targetMob)
     end)
 end
 
-spawn(function()
+task.spawn(function()
     local sessionId = getSessionId()
     while task.wait(0.08) do
         if not _G.Killaura then continue end
@@ -618,8 +606,8 @@ end
 function EquipWeapon(ToolSe)
     if not _G.NotAutoEquip then
         if LocalPlayer.Backpack:FindFirstChild(ToolSe) then
-            Tool = LocalPlayer.Backpack:FindFirstChild(ToolSe)
-            wait(.1)
+            local Tool = LocalPlayer.Backpack:FindFirstChild(ToolSe)
+            task.wait(.1)
             LocalPlayer.Character.Humanoid:EquipTool(Tool)
         end
     end
@@ -628,9 +616,9 @@ end
 function UnEquipWeapon(Weapon)
     if LocalPlayer.Character:FindFirstChild(Weapon) then
         _G.NotAutoEquip = true
-        wait(.2)
+        task.wait(.2)
         LocalPlayer.Character:FindFirstChild(Weapon).Parent = LocalPlayer.Backpack
-        wait(.2)
+        task.wait(.2)
         _G.NotAutoEquip = false
     end
 end
@@ -1326,7 +1314,7 @@ function getQuestConfig()
     return bestConfig
 end
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.AutoFarm then continue end
         
@@ -1394,7 +1382,7 @@ spawn(function()
     end
 end)
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.Lumen then continue end
         
@@ -1557,14 +1545,15 @@ function getMobQuestConfig()
     return bestConfig
 end
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.KillMobByName then continue end
         
         pcall(function()
-
+            _G.Noclip = true
+            _G.Clip = true
+            local currentConfig = getMobQuestConfig()
             if _G.GetMobQuest then
-                local currentConfig = getMobQuestConfig()
                 local correctQuest = false
 
                 if LocalPlayer.PlayerGui:FindFirstChild("TrackedQuestFrame") then
@@ -1587,8 +1576,6 @@ spawn(function()
             else
                 _G.Killaura = false
             end
-            _G.Noclip = true
-            _G.Clip = true
             local bestMob  = findEnemy(_G.CurrentSelectedMob)
             local offset = _G.KillOffset
             if bestMob then
@@ -1651,7 +1638,7 @@ local function getChestsSorted()
     return chests
 end
 
-spawn(function()
+task.spawn(function()
     while task.wait(1) do
         if not _G.AutoChestFarm then continue end
 
@@ -1693,7 +1680,7 @@ function isnil(thing)
     return (thing == nil)
 end
 local function round(n)
-    return math.floor(tonumber(n) + 0.5)
+    return math.floor(n + 0.5)
 end
 Number = math.random(1, 1000000)
 
@@ -2160,19 +2147,6 @@ if World3 then
 end
 
 
-
-spawn(function()
-    pcall(function()
-        while wait(0.5) do
-            for i = 1, 5 do
-                if game.Workspace._WorldOrigin.Locations:FindFirstChild('Island ' .. i) then
-                    checkisland = i
-                end
-            end
-        end
-    end)
-end)
-
 function getRaidMap()
     local map = workspace:FindFirstChild("Map")
     if not map then return nil end
@@ -2180,9 +2154,9 @@ function getRaidMap()
     return raidMap
 end
 
-spawn(function()
+task.spawn(function()
     pcall(function()
-        while wait(0.5) do
+        while task.wait(0.5) do
             if _G.AutoBuyChip then
                 if not LocalPlayer.Backpack:FindFirstChild("Special Microchip") or not LocalPlayer.Character:FindFirstChild("Special Microchip") then
                     if not getRaidMap():FindFirstChild("Island 1") then
@@ -2226,7 +2200,7 @@ function getMaxRaidIndex()
     return maxIndex
 end
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.LumenRaid then continue end
         
@@ -2324,9 +2298,9 @@ function raidLoop()
     if _G.RaidToggleOff then _G.RaidToggleOff() end
 end
 
-spawn(function()
+task.spawn(function()
     pcall(function()
-        while wait(.1) do
+        while task.wait(.1) do
             if _G.Auto_Awakener then
                 ReplicatedStorage.Remotes.CommF_:InvokeServer("Awakener","Check")
                 ReplicatedStorage.Remotes.CommF_:InvokeServer("Awakener","Awaken")
@@ -2335,12 +2309,76 @@ spawn(function()
     end)
 end)
 
+function findNearestFruit()
+    local bestDist = math.huge
+    local bestFruit = nil
+    for _, v in pairs(game.Workspace:GetChildren()) do
+        if string.find(v.Name, "Fruit") and v:FindFirstChild("Handle") then
+            local dist = GetDistance(v.Handle)
+            if dist < bestDist then
+                bestDist = dist
+                bestFruit = v
+            end
+        end
+    end
+
+    return bestFruit
+end
+
+task.spawn(function()
+    local flags = {"AutoFarm", "AutoChestFarm", "Lumen", "KillMobByName"}
+
+    while task.wait(0.1) do
+        if not _G.AutoFruit then continue end
+
+        pcall(function()
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            if not hrp then return end
+            local bestFruit = findNearestFruit()
+            local targetCFrame = bestFruit.Handle.CFrame
+
+            local activeFlag
+            for _, flag in ipairs(flags) do
+                if _G[flag] then
+                    activeFlag = flag
+                    break
+                end
+            end
+
+            if activeFlag then
+                _G.Clip = true
+                _G.Noclip = true
+                _G[activeFlag] = false
+                cancelFlight()
+                task.wait(0.1)
+                while GetDistance(bestFruit.Handle) > 2  and _G.AutoFruit and hrp do
+                    topos(targetCFrame)
+                end
+                task.wait(0.1)
+                _G[activeFlag] = true
+                _G.Clip = false
+                _G.Noclip = false
+            else
+                _G.Clip = true
+                _G.Noclip = true
+                while GetDistance(bestFruit.Handle) > 2  and _G.AutoFruit and hrp do
+                    topos(targetCFrame)
+                end
+                task.wait(0.1)
+                _G.Clip = false
+                _G.Noclip = false
+            end
+        end)
+    end
+end)
+
 task.spawn(function()
     while task.wait(0.1) do
         if _G.AutoStoreFruit and Remotes.CommF_ then
             for _, tool in ipairs(LocalPlayer.Backpack:GetChildren()) do
                 if tool:IsA("Tool") and string.find(tool.Name, "Fruit") then
-                    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("Store", tool.Name)
+                    local OriginalName = tool:GetAttribute("OriginalName")
+                    ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", OriginalName, tool)
                     task.wait(0.5)
                 end
             end
@@ -2352,7 +2390,7 @@ end)
 _G.Auto_Dungeon = false
 _G.DungeonFindRange = 700
 
-spawn(function()
+task.spawn(function()
     while task.wait() do
         if not _G.Auto_Dungeon then continue end
         
@@ -2432,7 +2470,211 @@ end)
 
 
 
+-- local GUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/parasmav2/refs/heads/main/gui.lua"))()
 local Gui = loadstring(game:HttpGet("https://raw.githubusercontent.com/tygyfy/ParasmaHub/refs/heads/main/BF_new_library.lua"))()
+local CONFIG_FOLDER = "Parasma_Configs"
+local CONFIG_EXT    = ".json"
+
+if not isfolder(CONFIG_FOLDER) then
+    makefolder(CONFIG_FOLDER)
+end
+-- Белый список переменных, которые сохраняются/загружаются.
+-- Всё остальное (функции, ремоуты, временные флаги) НЕ трогаем.
+local CONFIG_KEYS = {
+    "EnableWebhook", "AntiAFK",
+    "TweenSpeed", "SaveTweenSpeed", "RaidTweenSpeed",
+    "Noclip", "Clip",
+    "Killaura", "SafeKillaura", "AuraRange",
+    "KillOffsetX", "KillOffsetY", "KillOffsetZ",
+    "SelectWeapon", "AutoBuso",
+    "BringMob", "BringAllMob", "BringDistance",
+    "NotAutoEquip", "FindRange", "V4",
+    "AutoFarm", "KillMobByName", "GetMobQuest",
+    "CurrentSelectedMob",
+    "Lumen",
+    "AutoChestFarm", "AutoFruit", "AutoStoreFruit",
+    "AutoStats", "PointStats",
+    "ChestESP", "FruitESP", "IslandESP", "PlayersESP", "MobsESP",
+    "FlowerESP", "LsdESP", "AfdESP", "RealFruitESP",
+    "AutoBuyChip", "Auto_Raid", "LumenRaid", "Auto_Awakener",
+    "RaidCount", "Auto_Dungeon", "DungeonFindRange",
+    "SelectChip",
+}
+
+-- Ключи внутри _G.StatsToUpgrade — сохраняем отдельно
+local STATS_KEYS = { "Melee", "Defense", "Sword", "Gun", "Blox Fruit" }
+
+function SerializeValue(v)
+    local t = typeof(v)
+    if t == "Vector3" then
+        return { __type = "Vector3", X = v.X, Y = v.Y, Z = v.Z }
+    elseif t == "Color3" then
+        return { __type = "Color3", R = v.R, G = v.G, B = v.B }
+    elseif t == "CFrame" then
+        local x, y, z, r00, r01, r02, r10, r11, r12, r20, r21, r22 = v:GetComponents()
+        return { __type = "CFrame",
+            X=x, Y=y, Z=z,
+            R00=r00, R01=r01, R02=r02,
+            R10=r10, R11=r11, R12=r12,
+            R20=r20, R21=r21, R22=r22 }
+    end
+    return v
+end
+
+local function DeserializeValue(v)
+    if type(v) == "table" then
+        if v.__type == "Vector3" then
+            return Vector3.new(v.X, v.Y, v.Z)
+        elseif v.__type == "Color3" then
+            return Color3.new(v.R, v.G, v.B)
+        elseif v.__type == "CFrame" then
+            return CFrame.new(
+                v.X, v.Y, v.Z,
+                v.R00, v.R01, v.R02,
+                v.R10, v.R11, v.R12,
+                v.R20, v.R21, v.R22
+            )
+        end
+    end
+    return v
+end
+
+-- Сохраняет текущее состояние _G в файл с указанным именем
+function CreateConfig(configName)
+    if not configName or configName == "" then
+        return false, "Config name cant be Empty"
+    end
+
+    local path = CONFIG_FOLDER .. "/" .. configName .. CONFIG_EXT
+
+    local data = {
+        _meta = {
+            created  = os.date("%Y-%m-%d %H:%M:%S"),
+            script   = "Parasma",
+            version  = "2.1",
+        },
+        vars = {},
+        stats = {},
+    }
+
+    -- Основные переменные
+    for _, key in ipairs(CONFIG_KEYS) do
+        local val = _G[key]
+        if val ~= nil then
+            data.vars[key] = SerializeValue(val)
+        end
+    end
+
+    -- StatsToUpgrade
+    if type(_G.StatsToUpgrade) == "table" then
+        for _, key in ipairs(STATS_KEYS) do
+            data.stats[key] = _G.StatsToUpgrade[key] == true
+        end
+        -- на случай кастомных ключей внутри таблицы
+        for k, v in pairs(_G.StatsToUpgrade) do
+            if data.stats[k] == nil then
+                data.stats[k] = v
+            end
+        end
+    end
+
+    local ok, encoded = pcall(function()
+        return HttpService:JSONEncode(data)
+    end)
+
+    if not ok then
+        return false, "Encode error: " .. tostring(encoded)
+    end
+
+    local ok2, err = pcall(function()
+        writefile(path, encoded)
+    end)
+
+    if not ok2 then
+        return false, "Error create file: " .. tostring(err)
+    end
+
+    return true, "Config '" .. configName .. "' Saved"
+end
+
+
+-- Загружает конфиг и применяет значения к _G
+function LoadConfig(configName)
+    if not configName or configName == "" then
+        return false, "Config name cant be Empty"
+    end
+
+    local path = CONFIG_FOLDER .. "/" .. configName .. CONFIG_EXT
+
+    if not isfile(path) then
+        return false, "File doesnt exists: " .. configName
+    end
+
+    local ok, raw = pcall(readfile, path)
+    if not ok then
+        return false, "Errer - readfile"
+    end
+
+    local ok2, data = pcall(function()
+        return HttpService:JSONDecode(raw)
+    end)
+
+    if not ok2 or type(data) ~= "table" then
+        return false, "Config has errors"
+    end
+
+    -- Применяем основные переменные
+    if type(data.vars) == "table" then
+        for key, val in pairs(data.vars) do
+            _G[key] = DeserializeValue(val)
+        end
+    end
+
+    -- Пересобираем вектор KillOffset, если менялись X/Y/Z
+    if _G.KillOffsetX and _G.KillOffsetY and _G.KillOffsetZ then
+        _G.KillOffset = Vector3.new(_G.KillOffsetX, _G.KillOffsetY, _G.KillOffsetZ)
+    end
+
+    -- Восстанавливаем StatsToUpgrade
+    if type(data.stats) == "table" then
+        if type(_G.StatsToUpgrade) ~= "table" then
+            _G.StatsToUpgrade = {}
+        end
+        for k, v in pairs(data.stats) do
+            _G.StatsToUpgrade[k] = v
+        end
+    end
+
+    return true, "Config '" .. configName .. "' loaded"
+end
+
+-- Возвращает список всех сохранённых конфигов (без расширения)
+function ListConfigs()
+    local list = {}
+    if not isfolder(CONFIG_FOLDER) then return list end
+
+    local ok, files = pcall(listfiles, CONFIG_FOLDER)
+    if not ok then return list end
+
+    for _, f in ipairs(files) do
+        local name = f:match("([^/\\]+)" .. CONFIG_EXT .. "$")
+        if name then
+            table.insert(list, name)
+        end
+    end
+    return list
+end
+
+function DeleteConfig(configName)
+    local path = CONFIG_FOLDER .. "/" .. configName .. CONFIG_EXT
+    if isfile(path) then
+        pcall(delfile, path)
+        return true, "Deleted: " .. configName
+    end
+    return false, "File not found"
+end
+
+_G.autoexecConfig = ""
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
@@ -2502,14 +2744,78 @@ infoTab:AddButton("Reboot Service", function(Value)
     _G.Auto_Raid = false
     _G.LumenRaid = false
     _G.Auto_Awakener = false
-    _G.AutoFarmMastery = false
-    _G.SelectWeaponMastery = "Melee"
-    _G.AutoSkillZ = false
-    _G.AutoSkillX = false
-    _G.AutoSkillC = false
-    _G.AutoSkillV = false
-    _G.AutoSkillF = false
-    _G.PercentFarm = 25
+end)
+
+infoTab:AddSection("Config Manager")
+infoTab:AddLabel("Configs")
+
+-- Textbox для имени конфига
+local pendingConfigName = ""
+infoTab:AddTextbox("Config Name", "example: main_farm", _G.autoexecConfig, function(Value)
+    pendingConfigName = Value
+end)
+
+-- Список конфигов для выпадающего списка
+local configListCache = ListConfigs()
+if #configListCache == 0 then
+    configListCache = {"<empty>"}
+end
+local selectedConfig = nil
+local ConfigDropdown  -- объявим заранее
+
+-- Функция обновления дропдауна
+local function refreshConfigDropdown()
+    local list = ListConfigs()
+    if #list == 0 then list = {"<empty>"} end
+    if ConfigDropdown and ConfigDropdown.Refresh then
+        ConfigDropdown:Refresh(list)
+    end
+end
+
+ConfigDropdown = infoTab:AddDropdown("Saved configs", configListCache, "Select Config", function(Value)
+    selectedConfig = Value
+end)
+infoTab:AddButton("Create config", function()
+    local name = pendingConfigName
+    if not name or name == "" then
+        -- если textbox пустой — спросим через дропдаун
+        Window:Notify("Config", "Enter name in Config Name", 3)
+        return
+    end
+    local ok, msg = CreateConfig(name)
+    Window:Notify("Create config", msg, 3)
+    if ok then
+        refreshConfigDropdown()
+    end
+end)
+infoTab:AddButton("Load config", function()
+    local name = selectedConfig
+    if not name or name == "<empty>" or name == "" then
+        -- если ничего не выбрано — пробуем взять из textbox
+        name = pendingConfigName
+    end
+    if not name or name == "" then
+        Window:Notify("Config", "Select or enter name of config", 3)
+        return
+    end
+    local ok, msg = LoadConfig(name)
+    Window:Notify("Load config", msg, 3)
+end)
+infoTab:AddButton("Delete config", function()
+    local name = selectedConfig or pendingConfigName
+    if not name or name == "" or name == "<empty>" then
+        Window:Notify("Config", "Nothing to delete", 3)
+        return
+    end
+    local ok, msg = DeleteConfig(name)
+    Window:Notify("Delete config", msg, 3)
+    if ok then
+        refreshConfigDropdown()
+    end
+end)
+infoTab:AddButton("Refresh list", function()
+    refreshConfigDropdown()
+    Window:Notify("Config", "Configs were up to date", 2)
 end)
 
 local LocalPlayerTab = Window:CreateTab("LOCAL PLAYER", "")
@@ -2653,11 +2959,7 @@ if World2 then
         _G.FlowerESP = Value
     end)
     ESP:AddToggle("Legendary Sword Dealer ESP", false, function(Value)
-        LsdESP = Value
-        while LsdESP do
-            task.wait(1)
-            UpdateLsdESP()
-        end
+        _G.LsdESP = Value
     end)
 end
 if World3 then
