@@ -460,7 +460,7 @@ function getSessionId()
 end
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait() and _g.Killaura do
         local char = LocalPlayer.Character
         if not char then continue end
         local hrp = char.HumanoidRootPart
