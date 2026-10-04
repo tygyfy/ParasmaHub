@@ -2834,7 +2834,7 @@ local Window = Gui:CreateWindow({
 
 local infoTab = Window:CreateTab("INFO TAB", "")
 infoTab:AddSection("Info")
-infoTab:AddLabel("Version: 2.2")
+infoTab:AddLabel("Version: 2.3")
 infoTab:AddToggle("Webhook System", true, function(Value)
     _G.EnableWebhook = Value
 end)
