@@ -69,6 +69,7 @@ _G.KillOffsetY = 30
 _G.KillOffsetZ = 0
 _G.KillOffset = Vector3.new(_G.KillOffsetX, _G.KillOffsetY, _G.KillOffsetZ)
 _G.SelectWeapon = "Melee"
+_G.SelectToggleWeapon = "Melee"
 _G.AutoBuso = true
 _G.BringMob = false
 _G.BringAllMob = false
@@ -458,6 +459,22 @@ function getSessionId()
     return userIdSlice .. threadSlice
 end
 
+task.spawn(function()
+    while task.wait() do
+        local char = LocalPlayer.Character
+        if not char then continue end
+        local hrp = char.HumanoidRootPart
+        if not hrp then continue end
+
+        if not hrp:FindFirstChild("Buddha") then
+            local buddha = Instance.new("BoolValue")
+            buddha.Name = "Buddha"
+            buddha.Value = true
+            buddha.Parent = hrp
+        end
+    end
+end)
+
 local CombatFrameworkModule = nil
 pcall(function()
     if LocalPlayer.PlayerScripts:FindFirstChild("CombatFramework") then
@@ -484,7 +501,7 @@ function PerformFastAttack(targetMob)
         end
         
         if Remotes.RegisterAttack then
-            Remotes.RegisterAttack:FireServer(0)
+            Remotes.RegisterAttack:FireServer(0, 1)
         end
         
         if Remotes.RegisterHit and targetMob and targetMob:FindFirstChild("HumanoidRootPart") then
@@ -500,7 +517,6 @@ function PerformFastAttack(targetMob)
 end
 
 task.spawn(function()
-    local sessionId = getSessionId()
     while task.wait(0.08) do
         if not _G.Killaura then continue end
         
@@ -514,33 +530,55 @@ task.spawn(function()
                 if not char then return end
                 local hrp = char:FindFirstChild("HumanoidRootPart")
                 if not enemiesFolder or not hrp then return end
-                
-                local bestDist = _G.AuraRange
+
                 local hrpPos = hrp.Position
-                local nearestEnemy = nil
-                local nearestHead = nil
-                
-                for _, v in ipairs(enemiesFolder:GetChildren()) do
-                    local enemyHrp = v:FindFirstChild("HumanoidRootPart")
-                    if enemyHrp then
-                        local dist = (enemyHrp.Position - hrpPos).Magnitude
-                        if dist < bestDist then
-                            bestDist = dist
-                            nearestEnemy = v
-                            nearestHead = v:FindFirstChild("Head")
+                local targets = {}
+
+                for _, enemy in ipairs(enemiesFolder:GetChildren()) do
+                    local enemyHrp = enemy:FindFirstChild("HumanoidRootPart")
+                    local head = enemy:FindFirstChild("Head")
+
+                    if enemyHrp and head then
+                        local distance = (enemyHrp.Position - hrpPos).Magnitude
+
+                        if distance <= _G.AuraRange then
+                            table.insert(targets, {
+                                enemy = enemy,
+                                head = head,
+                                distance = distance
+                            })
                         end
                     end
                 end
-                
-                if nearestEnemy and nearestHead then
-                    Remotes.RegisterAttack:FireServer(0)
-                    local args = {
-                        nearestHead,
-                        {},
-                        sessionId
-                    }
-                    Remotes.RegisterHit:FireServer(unpack(args))
+
+                table.sort(targets, function(a, b)
+                    return a.distance < b.distance
+                end)
+
+                local maxTargets = 10
+                if #targets == 0 then return end
+
+                local primary = targets[1]
+                local extraHits = {}
+
+                for i = 2, math.min(#targets, maxTargets) do
+                    local target = targets[i]
+
+                    table.insert(extraHits, {
+                        target.enemy,
+                        target.head
+                    })
                 end
+
+                local sessionId = getSessionId()
+                Remotes.RegisterHit:FireServer(sessionId)
+                Remotes.RegisterAttack:FireServer(0, 1)
+                Remotes.RegisterHit:FireServer(
+                    primary.head,
+                    extraHits,
+                    nil,
+                    sessionId
+                )
             end)
         end
     end
@@ -639,9 +677,9 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait(0.1) do
         pcall(function()
-            if _G.SelectWeapon == "Melee" then
+            if _G.SelectToggleWeapon == "Melee" then
                 for i ,v in pairs(LocalPlayer.Backpack:GetChildren()) do
                     if v.ToolTip == "Melee" then
                         if LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
@@ -649,7 +687,7 @@ task.spawn(function()
                         end
                     end
                 end
-            elseif _G.SelectWeapon == "Sword" then
+            elseif _G.SelectToggleWeapon == "Sword" then
                 for i ,v in pairs(LocalPlayer.Backpack:GetChildren()) do
                     if v.ToolTip == "Sword" then
                         if LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
@@ -657,7 +695,7 @@ task.spawn(function()
                         end
                     end
                 end
-            elseif _G.SelectWeapon == "Gun" then
+            elseif _G.SelectToggleWeapon == "Gun" then
                 for i ,v in pairs(LocalPlayer.Backpack:GetChildren()) do
                     if v.ToolTip == "Gun" then
                         if LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
@@ -665,7 +703,7 @@ task.spawn(function()
                         end
                     end
                 end
-            elseif _G.SelectWeapon == "Fruit" then
+            elseif _G.SelectToggleWeapon == "Fruit" then
                 for i ,v in pairs(LocalPlayer.Backpack:GetChildren()) do
                     if v.ToolTip == "Blox Fruit" then
                         if LocalPlayer.Backpack:FindFirstChild(tostring(v.Name)) then
@@ -1315,15 +1353,10 @@ function getQuestConfig()
 end
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait(0.08) do
         if not _G.AutoFarm then continue end
         
         pcall(function()
-            if not _G.SafeKillaura then
-                _G.Killaura = true
-            else
-                _G.Killaura = false
-            end
             _G.Noclip = true
             _G.Clip = true
             local currentConfig = getQuestConfig()
@@ -1347,9 +1380,6 @@ task.spawn(function()
             local bestMob  = findEnemy(currentConfig.mobName)
             local offset = _G.KillOffset
             if bestMob  then
-                if _G.BringMob then
-                    topos(bestMob.HumanoidRootPart.CFrame + offset)
-                end
                 while bestMob 
                     and bestMob.Parent 
                     and bestMob:FindFirstChild("Humanoid") 
@@ -1357,17 +1387,12 @@ task.spawn(function()
                     and bestMob:FindFirstChild("HumanoidRootPart")
                     and _G.AutoFarm
                 do
-                    if not _G.BringMob then
-                        topos(bestMob.HumanoidRootPart.CFrame + offset)
-                    end
+                    _G.Killaura = true
+                    topos(bestMob.HumanoidRootPart.CFrame + offset)
                     EquipWeapon(_G.SelectWeapon)
                     AutoHaki()
                     if _G.BringMob then
                         BringNearbyMobs(currentConfig.mobName, bestMob.HumanoidRootPart.CFrame)
-                    end
-                    if _G.SafeKillaura then
-                        PerformFastAttack(bestMob)
-                        task.wait(0.08)
                     end
                     task.wait()
                 end
@@ -1383,23 +1408,16 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    while task.wait() do
+    while task.wait(0.08) do
         if not _G.Lumen then continue end
         
         pcall(function()
-            if not _G.SafeKillaura then
-                _G.Killaura = true
-            else
-                _G.Killaura = false
-            end
             _G.Noclip = true
             _G.Clip = true
 
             local bestMob  = findNearestEnemy()
             local offset = _G.KillOffset
-            if _G.BringAllMob then
-                topos(bestMob.HumanoidRootPart.CFrame + offset)
-            end
+
             while bestMob 
                 and bestMob.Parent 
                 and bestMob:FindFirstChild("Humanoid") 
@@ -1407,17 +1425,12 @@ task.spawn(function()
                 and bestMob:FindFirstChild("HumanoidRootPart")
                 and _G.Lumen
             do
-                if not _G.BringAllMob then
-                    topos(bestMob.HumanoidRootPart.CFrame + offset)
-                end
+                _G.Killaura = true
+                topos(bestMob.HumanoidRootPart.CFrame + offset)
                 EquipWeapon(_G.SelectWeapon)
                 AutoHaki()
                 if _G.BringAllMob then
                     BringAllMobs(bestMob.HumanoidRootPart.CFrame)
-                end
-                if _G.SafeKillaura then
-                    PerformFastAttack(bestMob)
-                    task.wait(0.08)
                 end
                 task.wait()
             end
@@ -1646,7 +1659,7 @@ task.spawn(function()
             local chests = getChestsSorted()
             if #chests > 0 then
                 local chest = chests[1]
-                if chest and chest.Parent and GetDistance(chest.CFrame) <= 6000 then
+                if chest and chest.Parent and GetDistance(chest.CFrame) <= 60000 then
                     topos(chest.CFrame)
                 end
             else
@@ -1790,7 +1803,7 @@ end
 function UpdateChestChams()
     for i, v in ipairs(Workspace:GetDescendants()) do
         pcall(function()
-            if v:IsA("BasePart") and string.find(v.Name, "Chest") and v:FindFirstChild("TouchInterest") then
+            if v:IsA("BasePart") and string.find(v.Name, "Chest") then
                 if _G.ChestESP then
                     if not v:FindFirstChild('NameEsp'..Number) then
                         local bill = Instance.new('BillboardGui',v)
@@ -2278,7 +2291,10 @@ function raidLoop()
             end
         end)
         
-        if raidCompleted then break end
+        if raidCompleted then
+            _G.LumenRaid = false
+            break
+        end
         task.wait(0.2)
     end
 
@@ -2386,6 +2402,135 @@ task.spawn(function()
     end
 end)
 
+-- WorldQuests
+_G.AutoSaberQuest = false
+task.spawn(function()
+    while task.wait(0.1) do
+        if not _G.AutoSaberQuest then continue end
+
+        pcall(function()
+            
+            local currentLevel = LocalPlayer.Data.Level.Value
+
+            if currentLevel >= 200 and World1 then
+                if game:GetService("Workspace").Map.Jungle.QuestPlates.Door.Transparency == 0 then
+                    _G.Noclip = true
+                    _G.Clip = true
+                    topos(CFrame.new(-1207.0172119140625, 25.357219696044922, 218.84141540527344))
+                    task.wait(1)
+                    topos(CFrame.new(-1703.7786865234375, 26.83890151977539, 473.42010498046875))
+                    task.wait(1)
+                    topos(CFrame.new(-1475.12060546875, 57.844970703125, 58.640132904052734))
+                    task.wait(1)
+                    topos(CFrame.new(-1525.3416748046875, 24.128463745117188, -613.9393310546875))
+                    task.wait(1)
+                    topos(CFrame.new(-1298.39794921875, 2.030159950256348, -802.1874389648438))
+                    task.wait(1)
+                    topos(CFrame.new(-1681.275634765625, 20.48395538330078, 165.1651611328125))
+                    task.wait(1)
+                    _G.Noclip = false
+                    _G.Clip = false
+                end
+            end
+
+        end)
+    end
+end)
+
+_G.AutoBartilo = false
+function iTP(targetCFrame)
+    local hrp = LocalPlayer.Character.HumanoidRootPart
+    if not hrp then return end
+
+    hrp.CFrame = targetCFrame
+end
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if not _G.AutoBartilo then continue end
+        
+        if LocalPlayer.Data.Level.Value >= 850 and ReplicatedStorage.Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 0 and World2 then
+            local questTitle = LocalPlayer.PlayerGui.TrackedQuestFrame.Frame.description.Text
+            if string.find(questTitle, "Swan Pirate") and string.find(LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text, "50") and LocalPlayer.PlayerGui:FindFirstChild("TrackedQuestFrame") == true then
+                local mob = findEnemy("Swan Pirate")
+                _G.Clip = true
+                _G.Noclip = true
+                if mob then
+                    topos(mob.HumanoidRootPart.CFrame + KillOffset)
+                    _G.Killaura = true
+                    while mob
+                        and mob.Parent 
+                        and mob:FindFirstChild("Humanoid") 
+                        and mob.Humanoid.Health > 0 
+                        and mob:FindFirstChild("HumanoidRootPart")
+                        and _G.AutoBartilo
+                    do
+                        EquipWeapon(_G.SelectWeapon)
+                        AutoHaki()
+                        topos(mob.HumanoidRootPart.CFrame + KillOffset)
+                        task.wait(0.1)
+                    end
+                    _G.Killaura = false
+                else
+                    topos(CFrame.new(932.624451, 156.106079, 1180.27466, -0.973085582, 4.55137119e-08, -0.230443969, 2.67024713e-08, 1, 8.47491108e-08, 0.230443969, 7.63147128e-08, -0.973085582))
+                    task.wait()
+                end
+                _G.Noclip = false
+                _G.Clip = false
+            else
+                topos(CFrame.new(-456.28952, 73.0200958, 299.895966))
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("StartQuest","BartiloQuest",1)
+            end
+        elseif LocalPlayer.Data.Level.Value >= 850 and ReplicatedStorage.Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 1 and World2 then
+            if game:GetService("Workspace").Enemies:FindFirstChild("Jeremy") then
+                local bestMob = findEnemy("Jeremy")
+                _G.Clip = true
+                _G.Noclip = true
+                if bestMob then
+                    topos(bestMob.HumanoidRootPart.CFrame + KillOffset)
+                    _G.Killaura = true
+                    while bestMob
+                        and bestMob.Parent 
+                        and bestMob:FindFirstChild("Humanoid") 
+                        and bestMob.Humanoid.Health > 0 
+                        and bestMob:FindFirstChild("HumanoidRootPart")
+                        and _G.AutoBartilo
+                    do
+                        EquipWeapon(_G.SelectWeapon)
+                        AutoHaki()
+                        topos(bestMob.HumanoidRootPart.CFrame + KillOffset)
+                        task.wait()
+                    end
+                    _G.Killaura = false
+                else
+                    topos(CFrame.new(-456.28952, 73.0200958, 299.895966))
+                    task.wait()
+                end
+                _G.Noclip = false
+                _G.Clip = false
+            else
+                topos(CFrame.new(2099.88159, 448.931, 648.997375))
+            end
+        elseif LocalPlayer.Data.Level.Value >= 850 and ReplicatedStorage.Remotes.CommF_:InvokeServer("BartiloQuestProgress","Bartilo") == 2 and World2 then
+            topos(CFrame.new(-1850.49329, 13.1789551, 1750.89685))
+            task.wait(5)
+            iTP(CFrame.new(-1858.87305, 19.3777466, 1712.01807))
+            task.wait(5)
+            iTP(CFrame.new(-1803.94324, 16.5789185, 1750.89685))
+            task.wait(5)
+            iTP(CFrame.new(-1858.55835, 16.8604317, 1724.79541))
+            task.wait(5)
+            iTP(CFrame.new(-1869.54224, 15.987854, 1681.00659)) 
+            task.wait(5)
+            iTP(CFrame.new(-1800.0979, 16.4978027, 1684.52368))
+            task.wait(5)
+            iTP(CFrame.new(-1819.26343, 14.795166, 1717.90625))
+            task.wait(5)
+            iTP(CFrame.new(-1813.51843, 14.8604736, 1724.79541))
+            task.wait(8)
+        end
+    end
+end)
 
 _G.Auto_Dungeon = false
 _G.DungeonFindRange = 700
@@ -2876,7 +3021,7 @@ KillauraSettings:AddSlider("Aura Range", 1, 100, 60, function(Value)
     _G.AuraRange = tonumber(Value)
 end)
 KillauraSettings:AddDropdown("Select Weapon", {"Melee", "Sword", "Fruit", "Gun"}, "Melee", function(Value)
-    _G.SelectWeapon = Value
+    _G.SelectToggleWeapon = Value
 end)
 KillauraSettings:AddToggle("Bring mobs", false, function(Value)
     _G.BringMob = Value
