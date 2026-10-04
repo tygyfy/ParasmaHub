@@ -2823,7 +2823,7 @@ _G.autoexecConfig = ""
 
 local Window = Gui:CreateWindow({
     Title = "Parasma",
-    Version = "ULTIMATE v2.2",
+    Version = "ULTIMATE v2.3",
     Size = UDim2.new(0, 720, 0, 440),
     Position = UDim2.new(0.5, -360, 0.5, -220),
     EnableKeySystem = true, -- или true
