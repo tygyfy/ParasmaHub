@@ -83,7 +83,7 @@ local toggleButtonSpacing = 50
 local KeySystem = {}
 
 -- URL вашего хранилища (GitHub Gist raw / Vercel / Worker)
-local KEY_API_URL = "https://gist.githubusercontent.com/tygyfy/8ec83890dccb9483e65eeb6aa49b0bad/raw/9f816d790103ce6f6b405650c27f52c6cbc5ce6d/gistfile1.txt"
+local KEY_API_URL = "https://gist.githubusercontent.com/tygyfy/8ec83890dccb9483e65eeb6aa49b0bad/raw/f74ea3bf3a612895d34d770c1ca69bf4f5c00f90/gistfile1.txt"
 
 -- Кэш на сессию, чтобы не долбить API
 local cache = {}
